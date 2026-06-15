@@ -53,7 +53,7 @@
             text-transform: uppercase;
         }
 
-        /* Screen States Control */
+        /* Screen Routing Architecture */
         .screen {
             display: none;
             max-width: 1300px;
@@ -70,13 +70,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Input Screen Layout */
         #input-screen {
             grid-template-columns: 1fr 1fr;
             gap: 30px;
         }
 
-        /* Evaluation Screen Layout */
         #evaluation-screen {
             grid-template-columns: 1fr 1fr;
             gap: 30px;
@@ -107,7 +105,6 @@
             padding-bottom: 10px;
         }
 
-        /* Forms & Inputs */
         .filter-group { margin-bottom: 20px; }
         label {
             display: block;
@@ -132,7 +129,6 @@
         }
         select:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Buttons */
         .action-btn {
             background-color: var(--inner-bg);
             border: 1px solid var(--border-color);
@@ -164,7 +160,7 @@
             font-size: 0.85rem;
         }
 
-        /* Drag & Drop Visual Box */
+        /* Interactive Drag Zone */
         .upload-zone {
             flex-grow: 1;
             border: 2px dashed var(--border-color);
@@ -187,7 +183,7 @@
         .upload-icon { font-size: 2.5rem; color: var(--text-dim); margin-bottom: 10px; }
         .upload-status { color: var(--pve-blue); font-size: 0.9rem; margin-top: 8px; display: none; font-weight: bold; }
 
-        /* Evaluation View Layout elements */
+        /* Detail Breakdown Module Grid Elements */
         .weapon-identity {
             display: flex;
             justify-content: space-between;
@@ -197,6 +193,7 @@
             padding-left: 14px;
         }
         .weapon-title { font-size: 1.8rem; font-weight: 700; color: #ffffff; }
+        
         .ammo-badge {
             font-size: 0.75rem;
             padding: 4px 10px;
@@ -229,7 +226,6 @@
         <div class="subtitle">Monument of Triumph Comprehensive Sandbox Toolkit</div>
     </header>
 
-    <!-- SCREEN 1: Setup and Image Landing Zone -->
     <div class="screen active" id="input-screen">
         <div class="panel">
             <div class="panel-title">1. Weapon Index Target</div>
@@ -238,9 +234,9 @@
                 <label for="slot-select">Inventory Weapon Slot</label>
                 <select id="slot-select">
                     <option value="">-- Choose Weapon Slot --</option>
-                    <option value="Primary">Primary Slot (Kinetic / Stasis / Strand)</option>
-                    <option value="Special">Special Slot (Energy Element Core)</option>
-                    <option value="Heavy">Heavy Slot (Power Weapons)</option>
+                    <option value="Primary">Primary Slot (Top Weapon Menu)</option>
+                    <option value="Special">Special Slot (Middle Weapon Menu)</option>
+                    <option value="Heavy">Heavy Slot (Bottom Weapon Menu)</option>
                 </select>
             </div>
 
@@ -261,19 +257,20 @@
 
         <div class="panel">
             <div class="panel-title">2. Visual Verification Image</div>
-            <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-                <div class="upload-icon">🖻</div>
-                <p style="margin: 0 0 6px 0; font-weight: 600;">Drop Loot Screenshot Here</p>
-                <p style="color: var(--text-dim); margin: 0; font-size: 0.85rem;">Or click to pull from local files</p>
-                <div class="upload-status" id="upload-status">✓ Screenshot Cached Successfully</div>
-                <input type="file" id="file-input" accept="image/*">
-            </div>
+            <label for="file-input" style="display: block; cursor: pointer; margin: 0; width: 100%;">
+                <div class="upload-zone" id="drop-zone">
+                    <div class="upload-icon">🖻</div>
+                    <p style="margin: 0 0 6px 0; font-weight: 600; color: #fff;">Drop Loot Screenshot Here</p>
+                    <p style="color: var(--text-dim); margin: 0; font-size: 0.85rem;">Or click to pull from photo library</p>
+                    <div class="upload-status" id="upload-status">✓ Screenshot Cached Successfully</div>
+                </div>
+            </label>
+            <input type="file" id="file-input" accept="image/*">
             
             <button class="action-btn" id="analyze-btn" disabled>Analyze Weapon Roll</button>
         </div>
     </div>
 
-    <!-- SCREEN 2: Comprehensive Evaluation Output Display -->
     <div class="screen" id="evaluation-screen">
         <div class="panel">
             <button class="action-btn back-btn" id="back-btn">← Modify Selections</button>
@@ -304,31 +301,39 @@
     </div>
 
     <script>
-        // Sandbox Weapon Engine Data Matrix
+        // Full Blueprint Global Tracking Variable Array
         const weaponDatabase = [
-            // PRIMARY SLOT AMMO ANOMALIES & CLASSICS
-            { name: "High Albedo", slot: "Primary", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Feeding Frenzy", meta:"pve"}, {name:"Demolistionist", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}, {name:"Desperate Measures", meta:"pve"}] },
-            { name: "Mint Retrograde", slot: "Primary", ammo: "special", type: "Rocket Pulse Rifle", col3: [{name:"Envious Assassin", meta:"pve"}, {name:"Hatchling", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}, {name:"One for All", meta:"pve"}] },
-            { name: "Critical Mass", slot: "Primary", ammo: "special", type: "Sniper Rifle", col3: [{name:"No Distractions", meta:"pvp"}, {name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Opening Shot", meta:"pvp"}] },
-            { name: "Midnight Coup (Triumph)", slot: "Primary", ammo: "primary", type: "Hand Cannon", col3: [{name:"Firefly", meta:"pve"}, {name:"Explosive Payload", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}, {name:"Frenzy", meta:"pve"}] },
-            { name: "Blast Furnace (Triumph)", slot: "Primary", ammo: "primary", type: "Pulse Rifle", col3: [{name:"Kinetic Tremors", meta:"pve"}, {name:"Zen Moment", meta:"pvp"}], col4: [{name:"Firefly", meta:"pve"}, {name:"Kill Clip", meta:"pvp"}] },
-            { name: "Shadow Price (Triumph)", slot: "Primary", ammo: "primary", type: "Auto Rifle", col3: [{name:"Overflow", meta:"pve"}, {name:"Demolitionist", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}, {name:"Target Lock", meta:"pvp"}] },
-            { name: "Hung Jury SR4 (Triumph)", slot: "Primary", ammo: "primary", type: "Scout Rifle", col3: [{name:"Rewind Rounds", meta:"pve"}, {name:"Rapid Hit", meta:"pve"}], col4: [{name:"Kinetic Tremors", meta:"pve"}, {name:"Firefly", meta:"pve"}] },
+            // PRIMARY SLOT LOCATION ITEMS (AMMO INDEPENDENT)
+            { name: "High Albedo", slot: "Primary", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Feeding Frenzy", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}] },
+            { name: "Mint Retrograde", slot: "Primary", ammo: "special", type: "Rocket Pulse Rifle", col3: [{name:"Envious Assassin", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
+            { name: "Critical Mass", slot: "Primary", ammo: "special", type: "Sniper Rifle", col3: [{name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Opening Shot", meta:"pvp"}] },
+            { name: "Midnight Coup (Triumph)", slot: "Primary", ammo: "primary", type: "Hand Cannon", col3: [{name:"Firefly", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}] },
+            { name: "Blast Furnace (Triumph)", slot: "Primary", ammo: "primary", type: "Pulse Rifle", col3: [{name:"Kinetic Tremors", meta:"pve"}], col4: [{name:"Firefly", meta:"pve"}] },
+            { name: "Shadow Price (Triumph)", slot: "Primary", ammo: "primary", type: "Auto Rifle", col3: [{name:"Overflow", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}] },
+            { name: "Hung Jury SR4 (Triumph)", slot: "Primary", ammo: "primary", type: "Scout Rifle", col3: [{name:"Rapid Hit", meta:"pve"}], col4: [{name:"Kinetic Tremors", meta:"pve"}] },
+            { name: "The Immortal", slot: "Primary", ammo: "primary", type: "Submachine Gun", col3: [{name:"Rangefinder", meta:"pvp"}], col4: [{name:"Target Lock", meta:"pvp"}] },
+            { name: "Accrued Redemption", slot: "Primary", ammo: "primary", type: "Bow", col3: [{name:"Archer's Tempo", meta:"pve"}], col4: [{name:"Rampage", meta:"pve"}] },
+            { name: "Boudica-C", slot: "Primary", ammo: "primary", type: "Sidearm", col3: [{name:"Pugilist", meta:"pve"}], col4: [{name:"Swashbuckler", meta:"pve"}] },
             
-            // SPECIAL SLOT ELEMENTAL FOUNDRY & ACCESSORIES
-            { name: "Tinasha's Mastery", slot: "Special", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Impulse Amplifier", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}, {name:"Surrounded", meta:"pve"}] },
+            // SPECIAL SLOT LOCATION ITEMS (AMMO INDEPENDENT)
+            { name: "Tinasha's Mastery", slot: "Special", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Impulse Amplifier", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}] },
             { name: "Coronation Pulse", slot: "Special", ammo: "special", type: "Rocket Pulse Rifle", col3: [{name:"Feeding Frenzy", meta:"pve"}], col4: [{name:"Voltshot", meta:"pve"}] },
-            { name: "Techeun Force (Reprised)", slot: "Special", ammo: "special", type: "Fusion Rifle", col3: [{name:"Rewind Rounds", meta:"pve"}, {name:"Under Pressure", meta:"pvp"}], col4: [{name:"Controlled Burst", meta:"pve"}, {name:"Rangefinder", meta:"pvp"}] },
-            { name: "Beloved (Triumph)", slot: "Special", ammo: "special", type: "Sniper Rifle", col3: [{name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Moving Target", meta:"pvp"}, {name:"Incandescent", meta:"pve"}] },
-            
-            // HEAVY SLOT SYSTEM ARCHETYPES
-            { name: "Apex Predator", slot: "Heavy", ammo: "heavy", type: "Rocket Launcher", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}, {name:"Explosive Light", meta:"pve"}] },
+            { name: "Techeun Force", slot: "Special", ammo: "special", type: "Fusion Rifle", col3: [{name:"Rewind Rounds", meta:"pve"}], col4: [{name:"Controlled Burst", meta:"pve"}] },
+            { name: "Beloved (Triumph)", slot: "Special", ammo: "special", type: "Sniper Rifle", col3: [{name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Moving Target", meta:"pvp"}] },
+            { name: "Matador 64", slot: "Special", ammo: "special", type: "Shotgun", col3: [{name:"Perpetual Motion", meta:"pvp"}], col4: [{name:"Opening Shot", meta:"pvp"}] },
+            { name: "Nesta's Scar", slot: "Special", ammo: "special", type: "Glaive", col3: [{name:"Demolitionist", meta:"pve"}], col4: [{name:"Close to Melee", meta:"pve"}] },
+            { name: "Path of Least Resistance", slot: "Special", ammo: "special", type: "Trace Rifle", col3: [{name:"Stats for All", meta:"pve"}], col4: [{name:"Voltshot", meta:"pve"}] },
+            { name: "Forbearance", slot: "Special", ammo: "special", type: "Grenade Launcher (Special)", col3: [{name:"Ambitious Assassin", meta:"pve"}], col4: [{name:"Chain Reaction", meta:"pve"}] },
+
+            // HEAVY SLOT LOCATION ITEMS
+            { name: "Apex Predator", slot: "Heavy", ammo: "heavy", type: "Rocket Launcher", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
             { name: "Wicked Sister (Triumph)", slot: "Heavy", ammo: "heavy", type: "Grenade Launcher", col3: [{name:"Envious Arsenal", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Edge of Transit", slot: "Heavy", ammo: "heavy", type: "Grenade Launcher", col3: [{name:"Envious Assassin", meta:"pve"}, {name:"Cascade Point", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Commemoration", slot: "Heavy", ammo: "heavy", type: "Machine Gun", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Killing Tally", meta:"pve"}] }
+            { name: "Edge of Transit", slot: "Heavy", ammo: "heavy", type: "Grenade Launcher", col3: [{name:"Envious Assassin", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
+            { name: "Commemoration", slot: "Heavy", ammo: "heavy", type: "Machine Gun", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Killing Tally", meta:"pve"}] },
+            { name: "Cataclysmic", slot: "Heavy", ammo: "heavy", type: "Linear Fusion Rifle", col3: [{name:"Fourth Time's the Charm", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
+            { name: "Falling Guillotine", slot: "Heavy", ammo: "heavy", type: "Sword", col3: [{name:"Frenzy", meta:"pve"}], col4: [{name:"Surrounded", meta:"pve"}] }
         ];
 
-        // Unique mapping setup separating exact type lists by tactical slots
         const archetypeCategorization = {
             Primary: ["Auto Rifle", "Pulse Rifle", "Hand Cannon", "Scout Rifle", "Submachine Gun", "Sidearm", "Rocket Sidearm", "Rocket Pulse Rifle", "Sniper Rifle", "Bow"],
             Special: ["Fusion Rifle", "Sniper Rifle", "Shotgun", "Glaive", "Trace Rifle", "Rocket Sidearm", "Rocket Pulse Rifle", "Grenade Launcher (Special)"],
@@ -337,7 +342,6 @@
 
         let selectedImageSrc = null;
 
-        // Elements Mapping
         const slotSelect = document.getElementById('slot-select');
         const typeSelect = document.getElementById('type-select');
         const weaponSelect = document.getElementById('weapon-select');
@@ -350,7 +354,6 @@
         const evaluationScreen = document.getElementById('evaluation-screen');
         const backBtn = document.getElementById('back-btn');
 
-        // Dynamic Cascading Menu Dropdown Engines
         slotSelect.addEventListener('change', () => {
             typeSelect.innerHTML = '<option value="">-- Choose Archetype --</option>';
             weaponSelect.innerHTML = '<option value="">-- Choose Weapon Name --</option>';
@@ -371,15 +374,19 @@
 
         typeSelect.addEventListener('change', () => {
             weaponSelect.innerHTML = '<option value="">-- Choose Weapon Name --</option>';
-            const filtered = weaponDatabase.filter(w => w.slot === slotSelect.value && w.type === typeSelect.value);
             
-            if (filtered.length > 0 && typeSelect.value) {
-                weaponSelect.disabled = false;
-                filtered.forEach(w => {
-                    const opt = document.createElement('option');
-                    opt.value = w.name; opt.textContent = w.name;
-                    weaponSelect.appendChild(opt);
-                });
+            if (typeSelect.value) {
+                const filtered = weaponDatabase.filter(w => w.slot === slotSelect.value && w.type === typeSelect.value);
+                if (filtered.length > 0) {
+                    weaponSelect.disabled = false;
+                    filtered.forEach(w => {
+                        const opt = document.createElement('option');
+                        opt.value = w.name; opt.textContent = w.name;
+                        weaponSelect.appendChild(opt);
+                    });
+                } else {
+                    weaponSelect.disabled = true;
+                }
             } else {
                 weaponSelect.disabled = true;
             }
@@ -388,15 +395,21 @@
 
         weaponSelect.addEventListener('change', checkRequirements);
 
-        // Core Image Processing Mechanics
+        // Core Desktop Drag Event Listeners
         ['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }, false));
         ['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }, false));
         dropZone.addEventListener('drop', (e) => handleImg(e.dataTransfer.files));
-        fileInput.addEventListener('change', function() { handleImg(this.files); });
+        
+        // Native mobile-friendly selection tracking capture pipeline
+        fileInput.addEventListener('change', function(e) { 
+            if (this.files && this.files.length > 0) {
+                handleImg(this.files); 
+            }
+        });
 
         function handleImg(files) {
             const file = files[0];
-            if (file && file.type.startsWith('image/')) {
+            if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     selectedImageSrc = e.target.result;
@@ -408,27 +421,4 @@
         }
 
         function checkRequirements() {
-            if (slotSelect.value && typeSelect.value && weaponSelect.value && selectedImageSrc) {
-                analyzeBtn.disabled = false;
-            } else {
-                analyzeBtn.disabled = true;
-            }
-        }
-
-        // Two-Screen Navigation Switchboards
-        analyzeBtn.addEventListener('click', () => {
-            const weapon = weaponDatabase.find(w => w.name === weaponSelect.value);
-            if (!weapon) return;
-
-            // Injected dynamic parameters into Screen 2
-            document.getElementById('eval-name').textContent = weapon.name;
-            const ammoTag = document.getElementById('eval-ammo');
-            ammoTag.textContent = `${weapon.ammo} Ammo Target`;
-            ammoTag.className = `ammo-badge ammo-${weapon.ammo}`;
-
-            const col3Box = document.getElementById('col3-eval-box');
-            const col4Box = document.getElementById('col4-eval-box');
-            col3Box.innerHTML = ''; col4Box.innerHTML = '';
-
-            weapon.col3.forEach(perk => {
-                const node =
+            // "Analyze Weapon Roll" button unlocks ONLY when all 3 selects + image are 
