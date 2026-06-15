@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tower Vault // God Roll Inspector</title>
+    <title>Tower Vault // Shared Dropzone</title>
     <style>
         :root {
             --bg-dark: #07090e;
@@ -13,7 +13,6 @@
             --text-dim: #7d8c9f;
             --gold-glow: #ffb700;
             --pve-blue: #00ebff;
-            --pvp-red: #ff3333;
             --border-color: #1e2633;
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
@@ -42,7 +41,6 @@
             text-transform: uppercase;
             margin: 0;
             color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.08);
         }
 
         .subtitle {
@@ -53,62 +51,29 @@
             text-transform: uppercase;
         }
 
-        /* Screen Routing Architecture */
-        .screen {
-            display: none;
-            max-width: 1300px;
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
-            animation: fadeSwitch 0.3s ease-in-out forwards;
-        }
-
-        .screen.active {
-            display: grid;
-        }
-
-        @keyframes fadeSwitch {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #input-screen {
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        #evaluation-screen {
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        @media (max-width: 900px) {
-            #input-screen, #evaluation-screen { grid-template-columns: 1fr; }
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
         }
 
         .panel {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 30px;
+            padding: 25px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
         }
 
-        .panel-title {
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 0;
-            margin-bottom: 25px;
-            color: var(--text-dim);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+        .input-group {
+            margin-bottom: 20px;
         }
 
-        .filter-group { margin-bottom: 20px; }
         label {
             display: block;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             color: var(--text-dim);
             margin-bottom: 8px;
@@ -116,7 +81,7 @@
             font-weight: 600;
         }
 
-        select {
+        input[type="text"] {
             width: 100%;
             padding: 14px;
             background-color: var(--inner-bg);
@@ -124,10 +89,26 @@
             color: var(--text-main);
             font-size: 1rem;
             border-radius: 4px;
-            cursor: pointer;
             outline: none;
+            box-sizing: border-box;
         }
-        select:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 35px 20px;
+            text-align: center;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .upload-icon { font-size: 2.5rem; color: var(--text-dim); margin-bottom: 10px; }
 
         .action-btn {
             background-color: var(--inner-bg);
@@ -140,285 +121,209 @@
             letter-spacing: 1px;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 20px;
             width: 100%;
+            transition: all 0.2s ease;
         }
+
         .action-btn:hover:not(:disabled) {
             border-color: var(--gold-glow);
             box-shadow: 0 0 10px rgba(255, 183, 0, 0.2);
-            background-color: rgba(255, 183, 0, 0.05);
         }
+
         .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        
-        .back-btn {
-            align-self: flex-start;
-            width: auto;
-            margin-top: 0;
-            margin-bottom: 20px;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-        }
 
-        /* Interactive Drag Zone */
-        .upload-zone {
-            flex-grow: 1;
-            border: 2px dashed var(--border-color);
-            border-radius: 6px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-            min-height: 250px;
-        }
-        .upload-zone.dragover, .upload-zone:hover {
-            background: rgba(255, 255, 255, 0.02);
-            border-color: var(--text-main);
-        }
-        .upload-icon { font-size: 2.5rem; color: var(--text-dim); margin-bottom: 10px; }
-        .upload-status { color: var(--pve-blue); font-size: 0.9rem; margin-top: 8px; display: none; font-weight: bold; }
-
-        /* Detail Breakdown Module Grid Elements */
-        .weapon-identity {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--gold-glow);
-            padding-left: 14px;
-        }
-        .weapon-title { font-size: 1.8rem; font-weight: 700; color: #ffffff; }
-        
-        .ammo-badge {
-            font-size: 0.75rem;
-            padding: 4px 10px;
+        /* Dynamic Copyable Output Link Box */
+        .share-box {
+            background: var(--inner-bg);
+            border: 1px solid var(--pve-blue);
+            padding: 15px;
             border-radius: 4px;
-            font-weight: bold;
-            text-transform: uppercase;
+            margin-top: 15px;
+            display: none;
+            font-size: 0.95rem;
+            word-break: break-all;
+            cursor: pointer;
+            text-align: center;
         }
-        .ammo-primary { background: #fff; color: #000; }
-        .ammo-special { background: #00ebff; color: #000; }
-        .ammo-heavy { background: #ffb700; color: #000; }
 
-        .perk-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
-        .perk-card { background: var(--inner-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 4px; display: flex; flex-direction: column; gap: 12px; }
-        .perk-node { padding: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid transparent; border-radius: 4px; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
-        
-        .god-pve { border-color: var(--pve-blue); box-shadow: inset 0 0 10px rgba(0, 235, 255, 0.15); }
-        .god-pvp { border-color: var(--pvp-red); box-shadow: inset 0 0 10px rgba(255, 51, 51, 0.15); }
-        .badge-pve { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--pve-blue); }
-        .badge-pvp { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--pvp-red); }
+        /* Responsive Vault Multi-Grid View */
+        .gallery-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-left: 4px solid var(--gold-glow);
+            padding-left: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-        .preview-img-frame { width: 100%; display: flex; justify-content: center; align-items: center; background: #020305; border-radius: 4px; border: 1px solid var(--border-color); min-height: 300px; }
-        .preview-img-frame img { max-width: 100%; max-height: 500px; object-fit: contain; }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-card {
+            background: var(--inner-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            background: #020305;
+            display: block;
+        }
+
         input[type="file"] { display: none; }
+        .status-msg { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; text-align: center; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Tower Vault // Roll Inspector</h1>
-        <div class="subtitle">Monument of Triumph Comprehensive Sandbox Toolkit</div>
+        <h1>Tower Vault // Shared Dropzone</h1>
+        <div class="subtitle">Instant Multi-Image Vault Showcase Showcase</div>
     </header>
 
-    <div class="screen active" id="input-screen">
+    <div class="container">
         <div class="panel">
-            <div class="panel-title">1. Weapon Index Target</div>
-            
-            <div class="filter-group">
-                <label for="slot-select">Inventory Weapon Slot</label>
-                <select id="slot-select">
-                    <option value="">-- Choose Weapon Slot --</option>
-                    <option value="Primary">Primary Slot (Top Weapon Menu)</option>
-                    <option value="Special">Special Slot (Middle Weapon Menu)</option>
-                    <option value="Heavy">Heavy Slot (Bottom Weapon Menu)</option>
-                </select>
+            <div class="input-group">
+                <label for="username-input">Guardian Identifier (Your Name)</label>
+                <input type="text" id="username-input" placeholder="Type name here...">
             </div>
 
-            <div class="filter-group">
-                <label for="type-select">Weapon Archetype Class</label>
-                <select id="type-select" disabled>
-                    <option value="">-- Choose Archetype --</option>
-                </select>
+            <div class="input-group">
+                <label>Roll Documentation Screenshots</label>
+                <label for="file-input">
+                    <div class="upload-zone">
+                        <div class="upload-icon">🎴</div>
+                        <p style="margin: 0 0 6px 0; font-weight: 600; color: #fff;">Select Gear Screenshots</p>
+                        <p style="color: var(--text-dim); margin: 0; font-size: 0.85rem;">Tap to select multiple pictures all at once</p>
+                    </div>
+                </label>
+                <input type="file" id="file-input" accept="image/*" multiple>
+                <div class="status-msg" id="file-status">No screenshots staged for transfer.</div>
             </div>
 
-            <div class="filter-group">
-                <label for="weapon-select">Target Legendary Identifier</label>
-                <select id="weapon-select" disabled>
-                    <option value="">-- Choose Weapon Name --</option>
-                </select>
-            </div>
+            <button class="action-btn" id="generate-btn" disabled>Generate Share Link</button>
+            <div class="share-box" id="share-link-box"></div>
         </div>
 
-        <div class="panel">
-            <div class="panel-title">2. Visual Verification Image</div>
-            <label for="file-input" style="display: block; cursor: pointer; margin: 0; width: 100%;">
-                <div class="upload-zone" id="drop-zone">
-                    <div class="upload-icon">🖻</div>
-                    <p style="margin: 0 0 6px 0; font-weight: 600; color: #fff;">Drop Loot Screenshot Here</p>
-                    <p style="color: var(--text-dim); margin: 0; font-size: 0.85rem;">Or click to pull from photo library</p>
-                    <div class="upload-status" id="upload-status">✓ Screenshot Cached Successfully</div>
-                </div>
-            </label>
-            <input type="file" id="file-input" accept="image/*">
-            
-            <button class="action-btn" id="analyze-btn" disabled>Analyze Weapon Roll</button>
-        </div>
-    </div>
-
-    <div class="screen" id="evaluation-screen">
-        <div class="panel">
-            <button class="action-btn back-btn" id="back-btn">← Modify Selections</button>
-            <div class="weapon-identity">
-                <div class="weapon-title" id="eval-name">Weapon Name</div>
-                <div class="ammo-badge" id="eval-ammo">Primary Ammo</div>
-            </div>
-
-            <label>Community Curated God Perks (Blueberries / Light.gg Meta)</label>
-            <div class="perk-columns">
-                <div>
-                    <label>Column 3 Traits</label>
-                    <div class="perk-card" id="col3-eval-box"></div>
-                </div>
-                <div>
-                    <label>Column 4 Traits</label>
-                    <div class="perk-card" id="col4-eval-box"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-title">Uploaded Screenshot Specimen</div>
-            <div class="preview-img-frame">
-                <img id="eval-img-preview" alt="User Weapon Configuration Analysis">
-            </div>
+        <div class="panel" id="gallery-panel" style="display: none;">
+            <div class="gallery-header" id="gallery-title">Vault Exhibition</div>
+            <div class="gallery-grid" id="gallery-target"></div>
         </div>
     </div>
 
     <script>
-        // Full Blueprint Global Tracking Variable Array
-        const weaponDatabase = [
-            // PRIMARY SLOT LOCATION ITEMS (AMMO INDEPENDENT)
-            { name: "High Albedo", slot: "Primary", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Feeding Frenzy", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}] },
-            { name: "Mint Retrograde", slot: "Primary", ammo: "special", type: "Rocket Pulse Rifle", col3: [{name:"Envious Assassin", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Critical Mass", slot: "Primary", ammo: "special", type: "Sniper Rifle", col3: [{name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Opening Shot", meta:"pvp"}] },
-            { name: "Midnight Coup (Triumph)", slot: "Primary", ammo: "primary", type: "Hand Cannon", col3: [{name:"Firefly", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}] },
-            { name: "Blast Furnace (Triumph)", slot: "Primary", ammo: "primary", type: "Pulse Rifle", col3: [{name:"Kinetic Tremors", meta:"pve"}], col4: [{name:"Firefly", meta:"pve"}] },
-            { name: "Shadow Price (Triumph)", slot: "Primary", ammo: "primary", type: "Auto Rifle", col3: [{name:"Overflow", meta:"pve"}], col4: [{name:"One for All", meta:"pve"}] },
-            { name: "Hung Jury SR4 (Triumph)", slot: "Primary", ammo: "primary", type: "Scout Rifle", col3: [{name:"Rapid Hit", meta:"pve"}], col4: [{name:"Kinetic Tremors", meta:"pve"}] },
-            { name: "The Immortal", slot: "Primary", ammo: "primary", type: "Submachine Gun", col3: [{name:"Rangefinder", meta:"pvp"}], col4: [{name:"Target Lock", meta:"pvp"}] },
-            { name: "Accrued Redemption", slot: "Primary", ammo: "primary", type: "Bow", col3: [{name:"Archer's Tempo", meta:"pve"}], col4: [{name:"Rampage", meta:"pve"}] },
-            { name: "Boudica-C", slot: "Primary", ammo: "primary", type: "Sidearm", col3: [{name:"Pugilist", meta:"pve"}], col4: [{name:"Swashbuckler", meta:"pve"}] },
-            
-            // SPECIAL SLOT LOCATION ITEMS (AMMO INDEPENDENT)
-            { name: "Tinasha's Mastery", slot: "Special", ammo: "special", type: "Rocket Sidearm", col3: [{name:"Impulse Amplifier", meta:"pve"}], col4: [{name:"Chill Clip", meta:"pve"}] },
-            { name: "Coronation Pulse", slot: "Special", ammo: "special", type: "Rocket Pulse Rifle", col3: [{name:"Feeding Frenzy", meta:"pve"}], col4: [{name:"Voltshot", meta:"pve"}] },
-            { name: "Techeun Force", slot: "Special", ammo: "special", type: "Fusion Rifle", col3: [{name:"Rewind Rounds", meta:"pve"}], col4: [{name:"Controlled Burst", meta:"pve"}] },
-            { name: "Beloved (Triumph)", slot: "Special", ammo: "special", type: "Sniper Rifle", col3: [{name:"Snapshot Sights", meta:"pvp"}], col4: [{name:"Moving Target", meta:"pvp"}] },
-            { name: "Matador 64", slot: "Special", ammo: "special", type: "Shotgun", col3: [{name:"Perpetual Motion", meta:"pvp"}], col4: [{name:"Opening Shot", meta:"pvp"}] },
-            { name: "Nesta's Scar", slot: "Special", ammo: "special", type: "Glaive", col3: [{name:"Demolitionist", meta:"pve"}], col4: [{name:"Close to Melee", meta:"pve"}] },
-            { name: "Path of Least Resistance", slot: "Special", ammo: "special", type: "Trace Rifle", col3: [{name:"Stats for All", meta:"pve"}], col4: [{name:"Voltshot", meta:"pve"}] },
-            { name: "Forbearance", slot: "Special", ammo: "special", type: "Grenade Launcher (Special)", col3: [{name:"Ambitious Assassin", meta:"pve"}], col4: [{name:"Chain Reaction", meta:"pve"}] },
-
-            // HEAVY SLOT LOCATION ITEMS
-            { name: "Apex Predator", slot: "Heavy", ammo: "heavy", type: "Rocket Launcher", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Wicked Sister (Triumph)", slot: "Heavy", ammo: "heavy", type: "Grenade Launcher", col3: [{name:"Envious Arsenal", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Edge of Transit", slot: "Heavy", ammo: "heavy", type: "Grenade Launcher", col3: [{name:"Envious Assassin", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Commemoration", slot: "Heavy", ammo: "heavy", type: "Machine Gun", col3: [{name:"Reconstruction", meta:"pve"}], col4: [{name:"Killing Tally", meta:"pve"}] },
-            { name: "Cataclysmic", slot: "Heavy", ammo: "heavy", type: "Linear Fusion Rifle", col3: [{name:"Fourth Time's the Charm", meta:"pve"}], col4: [{name:"Bait and Switch", meta:"pve"}] },
-            { name: "Falling Guillotine", slot: "Heavy", ammo: "heavy", type: "Sword", col3: [{name:"Frenzy", meta:"pve"}], col4: [{name:"Surrounded", meta:"pve"}] }
-        ];
-
-        const archetypeCategorization = {
-            Primary: ["Auto Rifle", "Pulse Rifle", "Hand Cannon", "Scout Rifle", "Submachine Gun", "Sidearm", "Rocket Sidearm", "Rocket Pulse Rifle", "Sniper Rifle", "Bow"],
-            Special: ["Fusion Rifle", "Sniper Rifle", "Shotgun", "Glaive", "Trace Rifle", "Rocket Sidearm", "Rocket Pulse Rifle", "Grenade Launcher (Special)"],
-            Heavy: ["Rocket Launcher", "Grenade Launcher", "Machine Gun", "Linear Fusion Rifle", "Sword"]
-        };
-
-        let selectedImageSrc = null;
-
-        const slotSelect = document.getElementById('slot-select');
-        const typeSelect = document.getElementById('type-select');
-        const weaponSelect = document.getElementById('weapon-select');
-        const dropZone = document.getElementById('drop-zone');
+        // Free, anonymous public web upload key configuration setting parameter endpoint targets
+        const clientToken = "3a92b2fc636ea9242d5f0e9b97b0a70f";
+        
+        let fileStagingArea = [];
+        const usernameInput = document.getElementById('username-input');
         const fileInput = document.getElementById('file-input');
-        const uploadStatus = document.getElementById('upload-status');
-        const analyzeBtn = document.getElementById('analyze-btn');
+        const fileStatus = document.getElementById('file-status');
+        const generateBtn = document.getElementById('generate-btn');
+        const shareBox = document.getElementById('share-link-box');
         
-        const inputScreen = document.getElementById('input-screen');
-        const evaluationScreen = document.getElementById('evaluation-screen');
-        const backBtn = document.getElementById('back-btn');
+        const galleryPanel = document.getElementById('gallery-panel');
+        const galleryTitle = document.getElementById('gallery-title');
+        const galleryTarget = document.getElementById('gallery-target');
 
-        slotSelect.addEventListener('change', () => {
-            typeSelect.innerHTML = '<option value="">-- Choose Archetype --</option>';
-            weaponSelect.innerHTML = '<option value="">-- Choose Weapon Name --</option>';
-            weaponSelect.disabled = true;
-            
-            if (slotSelect.value) {
-                typeSelect.disabled = false;
-                archetypeCategorization[slotSelect.value].forEach(type => {
-                    const opt = document.createElement('option');
-                    opt.value = type; opt.textContent = type;
-                    typeSelect.appendChild(opt);
+        // Check if an existing configuration link data pack exists right away upon opening page link
+        window.addEventListener('DOMContentLoaded', () => {
+            const URLParameters = new URLSearchParams(window.location.search);
+            const userString = URLParameters.get('user');
+            const dataPackString = URLParameters.get('vault');
+
+            if (userString && dataPackString) {
+                const imageList = JSON.parse(decodeURIComponent(dataPackString));
+                galleryTitle.textContent = `${userString}'s God Rolls`;
+                galleryTarget.innerHTML = '';
+                
+                imageList.forEach(url => {
+                    const card = document.createElement('div');
+                    card.className = 'gallery-card';
+                    card.innerHTML = `<img src="${url}" alt="Vault Image Specimen">`;
+                    galleryTarget.appendChild(card);
                 });
+                galleryPanel.style.display = 'block';
+            }
+        });
+
+        // Track and process multiple files loaded on input change channels
+        fileInput.addEventListener('change', function() {
+            fileStagingArea = Array.from(this.files);
+            if (fileStagingArea.length > 0) {
+                fileStatus.textContent = `✓ ${fileStagingArea.length} Screenshots Staged & Ready.`;
             } else {
-                typeSelect.disabled = true;
+                fileStatus.textContent = "No screenshots staged for transfer.";
             }
-            checkRequirements();
+            toggleActivation();
         });
 
-        typeSelect.addEventListener('change', () => {
-            weaponSelect.innerHTML = '<option value="">-- Choose Weapon Name --</option>';
-            
-            if (typeSelect.value) {
-                const filtered = weaponDatabase.filter(w => w.slot === slotSelect.value && w.type === typeSelect.value);
-                if (filtered.length > 0) {
-                    weaponSelect.disabled = false;
-                    filtered.forEach(w => {
-                        const opt = document.createElement('option');
-                        opt.value = w.name; opt.textContent = w.name;
-                        weaponSelect.appendChild(opt);
-                    });
-                } else {
-                    weaponSelect.disabled = true;
-                }
+        usernameInput.addEventListener('input', toggleActivation);
+
+        function toggleActivation() {
+            if (usernameInput.value.trim() !== "" && fileStagingArea.length > 0) {
+                generateBtn.disabled = false;
             } else {
-                weaponSelect.disabled = true;
-            }
-            checkRequirements();
-        });
-
-        weaponSelect.addEventListener('change', checkRequirements);
-
-        // Core Desktop Drag Event Listeners
-        ['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }, false));
-        ['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }, false));
-        dropZone.addEventListener('drop', (e) => handleImg(e.dataTransfer.files));
-        
-        // Native mobile-friendly selection tracking capture pipeline
-        fileInput.addEventListener('change', function(e) { 
-            if (this.files && this.files.length > 0) {
-                handleImg(this.files); 
-            }
-        });
-
-        function handleImg(files) {
-            const file = files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    selectedImageSrc = e.target.result;
-                    uploadStatus.style.display = 'block';
-                    checkRequirements();
-                }
-                reader.readAsDataURL(file);
+                generateBtn.disabled = true;
             }
         }
 
-        function checkRequirements() {
-            // "Analyze Weapon Roll" button unlocks ONLY when all 3 selects + image are 
+        // Loop, batch process, and upload files to the cloud
+        generateBtn.addEventListener('click', async () => {
+            generateBtn.disabled = true;
+            generateBtn.textContent = "Uploading to Vault Network...";
+            
+            const uploadedUrls = [];
+
+            for (let i = 0; i < fileStagingArea.length; i++) {
+                const formData = new FormData();
+                formData.append('image', fileStagingArea[i]);
+
+                try {
+                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${clientToken}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const parsedData = await response.json();
+                    if (parsedData.success) {
+                        uploadedUrls.push(parsedData.data.url);
+                    }
+                } catch (error) {
+                    console.error("Transmission error intercepted at cloud interface node: ", error);
+                }
+            }
+
+            if (uploadedUrls.length > 0) {
+                const encodedDataPack = encodeURIComponent(JSON.stringify(uploadedUrls));
+                const encodedUser = encodeURIComponent(usernameInput.value.trim());
+                
+                // Form perfect absolute link paths
+                const masterShareLink = `${window.location.origin}${window.location.pathname}?user=${encodedUser}&vault=${encodedDataPack}`;
+                
+                shareBox.innerHTML = `<strong>LINK GENERATED! Tap box to copy:</strong><br><br>${masterShareLink}`;
+                shareBox.style.display = 'block';
+                
+                shareBox.onclick = () => {
+                    navigator.clipboard.writeText(masterShareLink);
+                    alert("Vault link copied to device clipboard!");
+                };
+            } else {
+                alert("Upload failed. Verify internet connection configurations and retry drop.");
+            }
+
+            generateBtn.textContent = "Generate Share Link";
+            toggleActivation();
+        });
+    </script>
+</body>
+</html>
